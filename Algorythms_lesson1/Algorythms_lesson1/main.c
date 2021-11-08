@@ -8,35 +8,66 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
 #include <string.h>
 
-//1. *Количество маршрутов с препятствиями. Реализовать чтение массива с препятствием и нахождение количество маршрутов.
+//1. Реализовать перевод из десятичной в двоичную систему счисления с использованием стека.
 //
-//2. Решить задачу о нахождении длины максимальной последовательности с помощью матрицы.
+//2. Добавить в программу «реализация стека на основе односвязного списка» проверку на выделение памяти. Если память не выделяется, то выводится соответствующее сообщение. Постарайтесь создать ситуацию, когда память не будет выделяться (добавлением большого количества данных).
+//
+//3. Написать программу, которая определяет, является ли введенная скобочная последовательность правильной. Примеры правильных скобочных выражений: (), ([])(), {}(), ([{}]), неправильных — )(, ())({), (, ])}), ([(]) для скобок [,(,{.
+//
+//Например: (2+(2*2)) или [2/{5*(4+7)}]
 
-#define rowsCount 10
-#define columnsCount 10
+#define stackSize 1000
 
-void rootsWithBarriers(void);
-int * setupBarriers(int m, int n, int barriers[columnsCount][rowsCount]);
-void longestCommonSubsequence(void);
-void printLCSResult(long i, long j);
+void fromDecimalToBinary(void);
+int transformToBinary(int number);
+
+void singleListLink(void);
+void pushSingleList(int value);
+int popSingleList(void);
+void printSingleListStack(void);
+
+void bracketsSequence(void);
+
 void menu(void);
-void menuForBarriers(void);
+
+int arrayStack[stackSize];
+int n = -1;
+
+void push (int i) {
+    if (n < stackSize) {
+        n++;
+        arrayStack[n] = i;
+    } else {
+        printf("Stack oveflow!\n");
+    }
+}
+
+int pop(void) {
+    if (n != -1) {
+        return arrayStack[n--];
+    } else {
+        printf("Stack empty");
+        return -1;
+    }
+}
 
 int main(int argc, const char * argv[]) {
     int sel = 0;
-    
+
     do {
         menu();
         scanf("%i", &sel);
         switch (sel) {
             case 1:
-                rootsWithBarriers();
+                fromDecimalToBinary();
                 break;
             case 2:
-                longestCommonSubsequence();
+                singleListLink();
+                break;
+            case 3:
+                bracketsSequence();
                 break;
             case 0:
                 printf("Bye-bye! See you next time\n");
@@ -46,137 +77,360 @@ int main(int argc, const char * argv[]) {
                 break;
         }
     } while (sel != 0);
-    
+
     return 0;
 }
 
+void fromDecimalToBinary() {
+    int number;
 
-void rootsWithBarriers(void) {
-    int array[columnsCount][rowsCount];
-    int barriers[columnsCount][rowsCount];
-    int i, j;
+    printf("Enter required number: ");
+    scanf("%i", &number);
     
-    setupBarriers(rowsCount, columnsCount, barriers);
+    transformToBinary(number);
+
+    printf("Result is: \n");
     
-    for (i = 0; i < columnsCount; i++ ) {
-        array[0][i] = 1;
-    }
     
-    for (i = 1; i < columnsCount; i++) {
-        array[0][i] = 1;
-        for (j = 1; j < rowsCount; j++) {
-            array[j][0] = 1;
-            if (barriers[i][j] != 1) {
-                array[i][j] = array[i][j - 1] + array[i - 1][j];
-            } else {
-                array[i][j] = 0;
-            }
-        }
-    }
-    
-    for (i = 0; i < rowsCount; i++) {
-        printf("\n");
-        for (j = 0; j < columnsCount; j++) {
-            printf("%i ", array[i][j]);
-        }
+    while (n != -1) {
+        printf("%i", pop());
     }
     
     printf("\n");
-    
-    printf("Total possible options is %i\n", array[columnsCount - 1][rowsCount - 1]);
 }
 
-int * setupBarriers(int m, int n, int barriers[columnsCount][rowsCount]) {
-    int i, j;
-    int row, column = 0;
+int transformToBinary(int number) {
+    if (number % 2 == 0) {
+        push(0);
+    } else {
+        push(1);
+    }
+
+    if (number < 2) {
+        return 0;
+    } else {
+        return transformToBinary(number / 2);
+    }
+}
+
+struct TNode {
+    int value;
+    struct TNode *next;
+};
+typedef struct TNode Node;
+
+struct Stack {
+    Node *head;
+    int size;
+    int maxSize;
+};
+
+struct Stack Stack;
+
+void singleListLink() {
+    int i;
     
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-            barriers[i][j] = 0;
+    Stack.maxSize = 1000;
+    Stack.head = NULL;
+    
+    for (i = 0; i < 1000; i++) {
+        pushSingleList(i);
+    }
+    
+    printSingleListStack();
+    
+    printf("\n");
+}
+
+void pushSingleList(int value) {
+    if (Stack.size >= Stack.maxSize) {
+        printf("Error stack size");
+        return;
+    }
+    
+    Node *tmp = (Node*) malloc(sizeof(Node));
+    
+    if (tmp == NULL) {
+        printf("Error allocating memory!");
+        return;
+    }
+    
+    tmp->value = value;
+    tmp->next = Stack.head;
+    Stack.head = tmp;
+    Stack.size++;
+}
+
+int popSingleList() {
+    if (Stack.size == 0) {
+        printf("Stack is empty");
+        return -1;
+    }
+    
+    Node* next = NULL;
+    int value;
+    
+    value = Stack.head->value;
+    next = Stack.head;
+    Stack.head = Stack.head->next;
+    free(next);
+    Stack.size--;
+    return value;
+}
+
+void printSingleListStack() {
+    Node *current = Stack.head;
+    while (current != NULL) {
+        printf("%i ", current->value);
+        current = current->next;
+    }
+}
+
+char bracketsStack[stackSize];
+int nBrackets = -1;
+
+void pushBrackets(char value) {
+    if (nBrackets < stackSize) {
+        nBrackets++;
+        bracketsStack[nBrackets] = value;
+    } else {
+        printf("Stack oveflow!\n");
+    }
+}
+
+int popBrackets(void) {
+    if (nBrackets != -1) {
+        return bracketsStack[nBrackets--];
+    } else {
+        return -1;
+    }
+}
+
+void bracketsSequence() {
+    char equasion[stackSize];
+    int i;
+    
+    printf("Enter required equasion: ");
+    scanf("%s", equasion);
+    
+    long stringlenght = strlen(equasion);
+    
+    for (i = 0; i < stringlenght; i++) {
+        char c = equasion[i];
+        
+        if (c == '(' || c == '[' || c == '{') {
+            pushBrackets(c);
+        } else if (c == ')' || c == ']' || c == '}') {
+            char lastValue = popBrackets();
+            
+            if (lastValue == -1) {
+                printf("Wrong sequence! There were no opened bracket! \n");
+                break;
+            }
+            
+            if (c == ')' && lastValue != '(') {
+                printf("Wrong sequence!\n");
+                break;
+            }
+            
+            if (c == ']' && lastValue != '[') {
+                printf("Wrong sequence!\n");
+                break;
+            }
+            
+            if (c == '}' && lastValue != '{') {
+                printf("Wrong sequence!\n");
+                break;
+            }
         }
     }
     
-    printf("\n");
-    
-    do {
-        menuForBarriers();
-        scanf("%i %i", &row, &column);
-        if (row <= m && column <= n && row != 1 && column != 1) {
-            barriers[row - 1][column - 1] = 1;
-        }
-    } while (row != 0 && column !=0);
-    
-    return barriers;
-}
-
-int i, j, matrix[20][20];
-char firstWord[20], secondWord[20], b[20][20];
-
-void longestCommonSubsequence(void) {
-    
-    
-    printf("Enter 1st sequence:");
-    scanf("%s", firstWord);
-    
-    printf("Enter 2nd sequence:");
-    scanf("%s", secondWord);
-    
-    long m = strlen(firstWord);
-    long n = strlen(secondWord);
-    
-    for (i = 0; i <= m; i++)
-        matrix[i][0] = 0;
-    for (i = 0; i <= n; i++)
-        matrix[0][i] = 0;
-    
-    for (i = 1; i <= m; i++)
-        for (j = 1; j <= n; j++)
-        {
-            if (firstWord[i - 1] == secondWord[j - 1])
-            {
-                matrix[i][j] = matrix[i - 1][j - 1] + 1;
-                b[i][j] = 'c';
-            }
-            else if (matrix[i - 1][j] >= matrix[i][j - 1])
-            {
-                matrix[i][j] = matrix[i - 1][j];
-                b[i][j] = 'u';
-            }
-            else
-            {
-                matrix[i][j] = matrix[i][j - 1];
-                b[i][j] = 'l';
-            }
-        }
-    
-    printLCSResult(m, n);
-    printf("\n");
-}
-
-void printLCSResult(long i, long j) {
-    if (i == 0 || j == 0)
-            return;
-        if (b[i][j] == 'c')
-        {
-            printLCSResult(i - 1, j - 1);
-            printf("%c", firstWord[i - 1]);
-        }
-        else if (b[i][j] == 'u')
-            printLCSResult(i - 1, j);
-        else
-            printLCSResult(i, j - 1);
+    char checkOpenedBracketsValue = popBrackets();
+    if (checkOpenedBracketsValue != -1) {
+        printf("There were opened and not closed brackets!\n");
+    }
 }
 
 void menu() {
-    printf("1 - Roots with barriers\n");
-    printf("2 - Longest common subsequence\n");
+    printf("1 - Перевод из десятичной в двоичную систему счисления с использованием стека\n");
+    printf("2 - Стек на основе односвязного списка\n");
+    printf("3 - Скобочная последовательность\n");
     printf("0 - Exit\n");
 }
 
-void menuForBarriers() {
-    printf("Please enter row and column with barrier \n");
-    printf("0 0 - Finish\n");
-}
+
+
+// MARK: - Lesson 4
+
+//#include <time.h>
+//#include <string.h>
+//
+////1. *Количество маршрутов с препятствиями. Реализовать чтение массива с препятствием и нахождение количество маршрутов.
+////
+////2. Решить задачу о нахождении длины максимальной последовательности с помощью матрицы.
+//
+//#define rowsCount 10
+//#define columnsCount 10
+//
+//void rootsWithBarriers(void);
+//int * setupBarriers(int m, int n, int barriers[columnsCount][rowsCount]);
+//void longestCommonSubsequence(void);
+//void printLCSResult(long i, long j);
+//void menu(void);
+//void menuForBarriers(void);
+//
+//int main(int argc, const char * argv[]) {
+//    int sel = 0;
+//
+//    do {
+//        menu();
+//        scanf("%i", &sel);
+//        switch (sel) {
+//            case 1:
+//                rootsWithBarriers();
+//                break;
+//            case 2:
+//                longestCommonSubsequence();
+//                break;
+//            case 0:
+//                printf("Bye-bye! See you next time\n");
+//                break;
+//            default:
+//                printf("Something went wrong, please try again\n");
+//                break;
+//        }
+//    } while (sel != 0);
+//
+//    return 0;
+//}
+//
+//
+//void rootsWithBarriers(void) {
+//    int array[columnsCount][rowsCount];
+//    int barriers[columnsCount][rowsCount];
+//    int i, j;
+//
+//    setupBarriers(rowsCount, columnsCount, barriers);
+//
+//    for (i = 0; i < columnsCount; i++ ) {
+//        array[0][i] = 1;
+//    }
+//
+//    for (i = 1; i < columnsCount; i++) {
+//        array[0][i] = 1;
+//        for (j = 1; j < rowsCount; j++) {
+//            array[j][0] = 1;
+//            if (barriers[i][j] != 1) {
+//                array[i][j] = array[i][j - 1] + array[i - 1][j];
+//            } else {
+//                array[i][j] = 0;
+//            }
+//        }
+//    }
+//
+//    for (i = 0; i < rowsCount; i++) {
+//        printf("\n");
+//        for (j = 0; j < columnsCount; j++) {
+//            printf("%i ", array[i][j]);
+//        }
+//    }
+//
+//    printf("\n");
+//
+//    printf("Total possible options is %i\n", array[columnsCount - 1][rowsCount - 1]);
+//}
+//
+//int * setupBarriers(int m, int n, int barriers[columnsCount][rowsCount]) {
+//    int i, j;
+//    int row, column = 0;
+//
+//    for (i = 0; i < m; i++) {
+//        for (j = 0; j < n; j++) {
+//            barriers[i][j] = 0;
+//        }
+//    }
+//
+//    printf("\n");
+//
+//    do {
+//        menuForBarriers();
+//        scanf("%i %i", &row, &column);
+//        if (row <= m && column <= n && row != 1 && column != 1) {
+//            barriers[row - 1][column - 1] = 1;
+//        }
+//    } while (row != 0 && column !=0);
+//
+//    return barriers;
+//}
+//
+//int i, j, matrix[20][20];
+//char firstWord[20], secondWord[20], b[20][20];
+//
+//void longestCommonSubsequence(void) {
+//
+//
+//    printf("Enter 1st sequence:");
+//    scanf("%s", firstWord);
+//
+//    printf("Enter 2nd sequence:");
+//    scanf("%s", secondWord);
+//
+//    long m = strlen(firstWord);
+//    long n = strlen(secondWord);
+//
+//    for (i = 0; i <= m; i++)
+//        matrix[i][0] = 0;
+//    for (i = 0; i <= n; i++)
+//        matrix[0][i] = 0;
+//
+//    for (i = 1; i <= m; i++)
+//        for (j = 1; j <= n; j++)
+//        {
+//            if (firstWord[i - 1] == secondWord[j - 1])
+//            {
+//                matrix[i][j] = matrix[i - 1][j - 1] + 1;
+//                b[i][j] = 'c';
+//            }
+//            else if (matrix[i - 1][j] >= matrix[i][j - 1])
+//            {
+//                matrix[i][j] = matrix[i - 1][j];
+//                b[i][j] = 'u';
+//            }
+//            else
+//            {
+//                matrix[i][j] = matrix[i][j - 1];
+//                b[i][j] = 'l';
+//            }
+//        }
+//
+//    printLCSResult(m, n);
+//    printf("\n");
+//}
+//
+//void printLCSResult(long i, long j) {
+//    if (i == 0 || j == 0)
+//            return;
+//        if (b[i][j] == 'c')
+//        {
+//            printLCSResult(i - 1, j - 1);
+//            printf("%c", firstWord[i - 1]);
+//        }
+//        else if (b[i][j] == 'u')
+//            printLCSResult(i - 1, j);
+//        else
+//            printLCSResult(i, j - 1);
+//}
+//
+//void menu() {
+//    printf("1 - Roots with barriers\n");
+//    printf("2 - Longest common subsequence\n");
+//    printf("0 - Exit\n");
+//}
+//
+//void menuForBarriers() {
+//    printf("Please enter row and column with barrier \n");
+//    printf("0 0 - Finish\n");
+//}
 
 // MARK: - Lesson 3
 
